@@ -17,17 +17,19 @@
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(60, PIN, NEO_GRB + NEO_KHZ800);
 
 
+int type_of_clock = 1;
+
 
 uint32_t red = strip.Color(255, 0, 0);
 uint32_t blue = strip.Color(0, 0, 255);
 uint32_t white = strip.Color(127, 127, 127);
 uint32_t green = strip.Color(0, 255, 0);
+uint32_t none = strip.Color(0, 0, 0);
 
 int hour_t, minute_t, sec_t;
 // variables will change:
 int buttonState = 0; 
 int flag_on=1;
-
 
 // IMPORTANT: To reduce NeoPixel burnout risk, add 1000 uF capacitor across
 // pixel power leads, add 300 - 500 Ohm resistor on first pixel's data input
@@ -49,7 +51,6 @@ void setup() {
   strip.show(); // Initialize all pixels to 'off'
   
   //Time setup
-  while (!Serial) ; // wait until Arduino Serial Monitor opens
   setSyncProvider(RTC.get);   // the function to get the time from the RTC
   if(timeStatus()!= timeSet) 
      Serial.println("Unable to sync with the RTC");
@@ -129,31 +130,57 @@ void setHourColor(int hr, uint32_t color){
   if(hr==0){
     down=59;
   }
+  strip.setPixelColor(hr, none);
   strip.setPixelColor(hr, color);
+  
+  strip.setPixelColor(up, none);
   strip.setPixelColor(up, color);
+  
+  strip.setPixelColor(down, none);
   strip.setPixelColor(down, color);
 
 }
 
 //First light up hours in red, min in blue and sec in white
 void hour2ColorStrip(int hr, int minu, int sec, uint8_t wait){
-  strip.clear();
+  
   Serial.print("We strated with minu = ");
   Serial.println(minu);
-  if(hr*5 != minu){
-    setHourColor(hr, green);
-    strip.setPixelColor(minu, blue);
+  
+  if(type_of_clock == 1){
+   
+   for(uint16_t i=0; i<strip.numPixels(); i++) {
+      strip.setPixelColor(i, blue);
+    }
   }
   else{
-    if(hr*5 == minu ||(hr*5)+1 == minu || (hr*5)-1==minu){
-      Serial.println("hour and min mixed");
-      setHourColor(hr, green);
-      strip.setPixelColor(minu, strip.Color(255, 0, 255));
-    }
+    strip.clear();
+  }
+  
+  
+  
+  if(hr*5 == minu ||(hr*5)+1 == minu || (hr*5)-1==minu){
+    setHourColor(hr, green);
+    
+    //strip.setPixelColor(minu, none);
+    strip.setPixelColor(minu, red);
+  }
+  else{
+    Serial.println("hour and min mixed");
+    setHourColor(hr, green);
+    
+    //strip.setPixelColor(minu, none);
+    strip.setPixelColor(minu, strip.Color(255, 255, 0));
   }
   
   //Always shows seconds
-  strip.setPixelColor(sec, white);
+  if(type_of_clock == 1){
+    strip.setPixelColor(sec, none);
+  }
+  else{
+    strip.setPixelColor(sec, white);
+  }
+  
   strip.show();
   delay(wait);
 }
