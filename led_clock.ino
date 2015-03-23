@@ -77,15 +77,25 @@ void loop() {
     }
   }
   
+  Serial.println("Button State !");
+  Serial.println(digitalRead(TOUCH));
+  
+  //turn the clock off at the specified hour
+  if( hour_t == 23 && minute_t == 0 && flag_on == 1){
+    flag_on = 0;
+  }
+  //Turn the clock on at the specified hour
+  else if( hour_t == 8 && minute_t == 30 && flag_on == 0){
+    flag_on = 1;
+  }
+  
   Serial.println(buttonState);
   if(flag_on==1){
     getHour(hour_t, minute_t, sec_t);
     
-    Serial.println(hour_t);
-    Serial.println(minute_t);
-    Serial.println(sec_t);
-    
+       
     hour2ColorStrip(hour_t, minute_t, sec_t, 100);
+    
   }
   else{
     strip.clear();
@@ -107,12 +117,7 @@ void loop() {
 
 //Calculate the hour
 void getHour(int& hr, int& minu, int& sec){
-  hr=hour()+1;
-  Serial.print("First is : ");
-  Serial.println(hr);
-  if(hr>=12){
-    hr=hr-12;
-  }
+  hr=hour()+1; //TODO ATTENTION HACK BECAUSE HOUR IS WRONG ON RTC MODULE
   minu=minute();
   sec=second();
   
@@ -121,7 +126,9 @@ void getHour(int& hr, int& minu, int& sec){
 }
 
 void setHourColor(int hr, uint32_t color){
-  hr=hr*5;
+  if(hr > 12){
+    hr=(hr-12)*5;
+  }
   int up=hr+1;
   int down=hr-1;
   if(hr==59){
@@ -144,9 +151,6 @@ void setHourColor(int hr, uint32_t color){
 //First light up hours in red, min in blue and sec in white
 void hour2ColorStrip(int hr, int minu, int sec, uint8_t wait){
   
-  Serial.print("We strated with minu = ");
-  Serial.println(minu);
-  
   if(type_of_clock == 1){
    
    for(uint16_t i=0; i<strip.numPixels(); i++) {
@@ -159,16 +163,13 @@ void hour2ColorStrip(int hr, int minu, int sec, uint8_t wait){
   
   
   
-  if(hr*5 == minu ||(hr*5)+1 == minu || (hr*5)-1==minu){
+  if( (hr-12)*5 != minu ||((hr-12)*5)+1 != minu || ((hr-12)*5)-1 !=minu){
     setHourColor(hr, green);
-    
     //strip.setPixelColor(minu, none);
     strip.setPixelColor(minu, red);
   }
   else{
-    Serial.println("hour and min mixed");
     setHourColor(hr, green);
-    
     //strip.setPixelColor(minu, none);
     strip.setPixelColor(minu, strip.Color(255, 255, 0));
   }
@@ -194,6 +195,14 @@ void colorWipe(uint32_t c, uint8_t wait) {
       delay(wait);
   }
 }
+
+
+/*Clock mode on and off*/
+
+
+
+
+/* USELESS STUFF*/
 
 void colorWipeOne(uint32_t c, uint8_t wait) {
   //Start with putting all to none
