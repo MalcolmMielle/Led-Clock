@@ -2,7 +2,7 @@
 #include <avr/power.h>
 #include <Time.h> 
 #include <Wire.h>  
-#include <DS3231RTC.h>  
+#include <DS3232RTC.h>  
 
 #define PIN 9
 #define TOUCH 10
@@ -17,7 +17,7 @@
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(60, PIN, NEO_GRB + NEO_KHZ800);
 
 
-int type_of_clock = 1;
+int type_of_clock = 0;
 
 
 uint32_t red = strip.Color(255, 0, 0);
@@ -89,6 +89,10 @@ void loop() {
     flag_on = 1;
   }
   
+  
+  //TEST
+  flag_on = 1;
+  
   Serial.println(buttonState);
   if(flag_on==1){
     getHour(hour_t, minute_t, sec_t);
@@ -117,7 +121,7 @@ void loop() {
 
 //Calculate the hour
 void getHour(int& hr, int& minu, int& sec){
-  hr=hour()+1; //TODO ATTENTION HACK BECAUSE HOUR IS WRONG ON RTC MODULE
+  hr=hour(); //TODO ATTENTION HACK BECAUSE HOUR IS WRONG ON RTC MODULE
   minu=minute();
   sec=second();
   
@@ -151,9 +155,11 @@ void setHourColor(int hr, uint32_t color){
 //First light up hours in red, min in blue and sec in white
 void hour2ColorStrip(int hr, int minu, int sec, uint8_t wait){
   
+  Serial.println("Set color");
   if(type_of_clock == 1){
    
    for(uint16_t i=0; i<strip.numPixels(); i++) {
+     //Serial.print("All the bleu");
       strip.setPixelColor(i, blue);
     }
   }
@@ -164,6 +170,9 @@ void hour2ColorStrip(int hr, int minu, int sec, uint8_t wait){
   
   
   if( (hr-12)*5 != minu ||((hr-12)*5)+1 != minu || ((hr-12)*5)-1 !=minu){
+    Serial.println("HOUR");
+    Serial.println(hr);Serial.println("Min");
+    Serial.println(minu);
     setHourColor(hr, green);
     //strip.setPixelColor(minu, none);
     strip.setPixelColor(minu, red);
@@ -181,6 +190,9 @@ void hour2ColorStrip(int hr, int minu, int sec, uint8_t wait){
   else{
     strip.setPixelColor(sec, white);
   }
+  
+  //TEST
+  strip.setPixelColor(sec, white);
   
   strip.show();
   delay(wait);
